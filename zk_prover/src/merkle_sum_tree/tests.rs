@@ -150,6 +150,25 @@ mod test {
     }
 
     #[test]
+    fn test_negative_big_uint_conversion() {
+        // test that the conversion from a negative big uint to an Fp returns None & panics
+        let big_uint = (-3).to_biguint();
+        assert!(big_uint.is_none());
+        assert!(std::panic::catch_unwind(|| big_uint.unwrap()).is_err());
+        // cannot convert negative number to big uint
+        // big uint is being converted to field element using merkle_sum_tree::utils::big_uint_to_fp
+        // plus field elements are non-negative values so it doesn't seem possible to get a negative value into mst or range_check
+    }
+
+    #[test]
+    fn test_mst_negative_value_in_csv() {
+        // create new merkle tree with csv containing negative values
+        let merkle_tree =
+            MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_16_negative.csv");
+        assert!(merkle_tree.is_err());
+    }
+
+    #[test]
     fn get_middle_node_hash_preimage() {
         let merkle_tree =
             MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_16.csv").unwrap();

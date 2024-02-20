@@ -63,3 +63,15 @@ pub fn parse_csv_to_entries<P: AsRef<Path>, const N_CURRENCIES: usize, const N_B
 
     Ok((cryptocurrencies, entries))
 }
+
+#[cfg(test)]
+mod test {
+    use crate::merkle_sum_tree::utils::parse_csv_to_entries;
+
+    #[test]
+    fn test_parse_csv_to_entries() {
+        // test negative value in csv
+        let result = parse_csv_to_entries::<&str, 2, 8>("../csv/entry_16_negative.csv");
+        assert!(result.is_err());
+    }
+}
