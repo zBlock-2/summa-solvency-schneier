@@ -272,6 +272,18 @@ mod testing {
         );
     }
 
+    /* #[test]
+    // test converting negative value to Fp for use in range_check chip
+    fn test_negative_value() {
+        let a = Fp::from(-1i8);
+        /* 
+          the trait bound `halo2_proofs::halo2curves::bn256::Fr: From<i8>` is not satisfied
+          the following other types implement trait `From<T>`:
+            <halo2_proofs::halo2curves::bn256::Fr as From<bool>>
+            <halo2_proofs::halo2curves::bn256::Fr as From<u64>>
+        */
+    } */
+
     #[cfg(feature = "dev-graph")]
     #[test]
     fn print_range_check_test() {
