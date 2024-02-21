@@ -296,12 +296,16 @@ mod testing {
     #[cfg(feature = "dev-graph")]
     #[test]
     fn print_range_check_dot_graph() {
+        use std::io::Write;
+
         let circuit = TestCircuit::<4> {
             a: Fp::from(0x1f2f3f4f),
             b: Fp::from(1),
         };
 
         let dot_string = halo2_proofs::dev::circuit_dot_graph(&circuit);
+        let mut dot_graph = std::fs::File::create("prints/range-check.dot").unwrap();
+        dot_graph.write_all(dot_string.as_bytes()).unwrap();
 
         print!("{}", dot_string);
     }
