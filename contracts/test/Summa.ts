@@ -289,6 +289,28 @@ describe("Summa Contract", () => {
         );
     });
 
+    it.only("gas limit for submit commitment", async () => {
+      // try submitting commitment for large no. of root balances & cryptocurrencies
+      const MAX_CRYPTOCURRENCIES = 485;
+      rootBalances = Array(MAX_CRYPTOCURRENCIES ).fill(
+        BigNumber.from(1000000000)
+      );
+      const cryptocurrencies = Array(MAX_CRYPTOCURRENCIES ).fill({
+        chain: 'ETH',
+        name: 'ETH',
+      });
+      await submitCommitment(summa, mstRoot, rootBalances, cryptocurrencies);
+
+      // 500: Transaction gas limit is 30024152 and exceeds block gas limit of 30000000
+      // 485: Transaction gas limit is 30001304 and exceeds block gas limit of 30000000
+      // 484: Transaction ran out of gas
+      // 450: Transaction ran out of gas
+      // 425: Transaction ran out of gas
+      // 403: Transaction ran out of gas
+      // 402: 29,800,304
+      // 400: 29,652,116
+    });
+
     it("should revert if the caller is not the owner", async () => {
       await expect(
         summa.connect(account2).submitCommitment(
