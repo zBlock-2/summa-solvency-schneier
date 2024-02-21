@@ -292,4 +292,17 @@ mod testing {
             .render(9, &circuit, &root)
             .unwrap();
     }
+
+    #[cfg(feature = "dev-graph")]
+    #[test]
+    fn print_range_check_dot_graph() {
+        let circuit = TestCircuit::<4> {
+            a: Fp::from(0x1f2f3f4f),
+            b: Fp::from(1),
+        };
+
+        let dot_string = halo2_proofs::dev::circuit_dot_graph(&circuit);
+
+        print!("{}", dot_string);
+    }
 }
