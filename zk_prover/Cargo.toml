@@ -13,6 +13,7 @@ dev-graph = ["halo2_proofs/dev-graph", "plotters"]
 halo2_proofs = { git = "https://github.com/summa-dev/halo2"}
 halo2_gadgets = { git = "https://github.com/summa-dev/halo2"}
 plotters = { version = "0.3.4", optional = true }
+graphviz-rust = {version = "0.7.1", optional = true}
 rand = "0.8"
 ark-std = { version = "0.3.0", features = ["print-trace"] }
 tabbycat = { version = "0.1", features = ["attributes"], optional = true }

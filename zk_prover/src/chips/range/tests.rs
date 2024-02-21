@@ -292,4 +292,42 @@ mod testing {
             .render(9, &circuit, &root)
             .unwrap();
     }
+
+    #[cfg(feature = "dev-graph")]
+    #[test]
+    fn print_range_check_dot_graph() {
+        use std::io::Write;
+
+        use graphviz_rust::{
+            cmd::{CommandArg, Format},
+            dot_structures::*,
+            exec, parse,
+            printer::PrinterContext,
+        };
+
+        let circuit = TestCircuit::<4> {
+            a: Fp::from(0x1f2f3f4f),
+            b: Fp::from(1),
+        };
+
+        let dot_string = halo2_proofs::dev::circuit_dot_graph(&circuit);
+        let mut dot_graph = std::fs::File::create("prints/range-check.dot").unwrap();
+        dot_graph.write_all(dot_string.as_bytes()).unwrap();
+
+        print!("{}", dot_string);
+
+        // * Following svg generation requires graphviz client to be installed: https://graphviz.org/download/#executable-packages
+        // * Might be easier to use Graphviz Interactive Preview extension in VSCode to open the .dot file
+        // * https://marketplace.visualstudio.com/items?itemName=tintinweb.graphviz-interactive-preview
+        let g: Graph = parse(&dot_string).unwrap();
+        exec(
+            g,
+            &mut PrinterContext::default(),
+            vec![
+                Format::Svg.into(),
+                CommandArg::Output("prints/range-check-dot-graph.svg".to_string()),
+            ],
+        )
+        .unwrap();
+    }
 }
