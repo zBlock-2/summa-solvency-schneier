@@ -458,4 +458,27 @@ mod test {
             .render(K, &circuit, &root)
             .unwrap();
     }
+
+
+    #[cfg(feature = "dev-graph")]
+    #[test]
+    fn mst_inclusion_cost() {
+        use halo2_proofs::{dev::CircuitCost, halo2curves::bn256::G1};
+
+        // TODO: confirm the value of K
+        const K: u32 = 11;
+
+        let merkle_sum_tree =
+            MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_16.csv").unwrap();
+        let user_index = 0;
+        let merkle_proof = merkle_sum_tree.generate_proof(user_index).unwrap();
+        let circuit = MstInclusionCircuit::<LEVELS, N_CURRENCIES, N_BYTES>::init(merkle_proof);
+
+        let ckt_cost =
+            CircuitCost::<G1, MstInclusionCircuit<LEVELS, N_CURRENCIES, N_BYTES>>::measure(
+                K, &circuit,
+            );
+        let proof_size = ckt_cost.proof_size(1);
+        print!("{:#?}", proof_size);
+    }
 }
