@@ -292,4 +292,22 @@ mod testing {
             .render(9, &circuit, &root)
             .unwrap();
     }
+
+    #[cfg(feature = "dev-graph")]
+    #[test]
+    fn range_check_cost() {
+        use halo2_proofs::{dev::CircuitCost, halo2curves::bn256::G1};
+
+        // TODO: confirm the value of K
+        const K: u32 = 4;
+
+        let circuit = TestCircuit::<4> {
+            a: Fp::from(0x1f2f3f4f),
+            b: Fp::from(1),
+        };
+
+        let ckt_cost = CircuitCost::<G1, TestCircuit<4>>::measure(K, &circuit);
+        let proof_size = ckt_cost.proof_size(1);
+        print!("{:#?}", proof_size);
+    }
 }
