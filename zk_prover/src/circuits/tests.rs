@@ -13,9 +13,17 @@ mod test {
     use halo2_proofs::{
         dev::{FailureLocation, MockProver, VerifyFailure},
         halo2curves::bn256::Fr as Fp,
-        plonk::Any,
+        plonk::{create_proof, verify_proof, Any},
+        poly::kzg::{
+            multiopen::{ProverSHPLONK, VerifierSHPLONK},
+            strategy::SingleStrategy,
+        },
+        transcript::TranscriptWriterBuffer,
     };
+    use halo2_solidity_verifier::Keccak256Transcript;
     use num_bigint::ToBigUint;
+    use rand::rngs::OsRng;
+    use std::{fs::File, io::Write, path::Path};
 
     const N_CURRENCIES: usize = 2;
     const LEVELS: usize = 4;
@@ -457,5 +465,63 @@ mod test {
         halo2_proofs::dev::CircuitLayout::default()
             .render(K, &circuit, &root)
             .unwrap();
+    }
+
+    #[test]
+    fn test_end_to_end_proof_and_verify() {
+        let merkle_sum_tree =
+            MerkleSumTree::<N_CURRENCIES, N_BYTES>::from_csv("../csv/entry_16.csv").unwrap();
+
+        for user_index in 0..16 {
+            // get merkle proof for entry ˆuser_indexˆ
+            // let user_index = 0;
+            let merkle_proof = merkle_sum_tree.generate_proof(user_index).unwrap();
+
+            let circuit = MstInclusionCircuit::<LEVELS, N_CURRENCIES, N_BYTES>::init(merkle_proof);
+            // generate a universal trusted setup for testing, along with the verification key (vk) and the proving key (pk).
+            let (params, pk, _) = generate_setup_artifacts(
+                11,
+                Some("../backend/ptau/hermez-raw-11"),
+                circuit.clone(),
+            )
+            .unwrap();
+            let instances_clone = circuit.instances().clone();
+
+            // generate proof
+            let proof = {
+                let mut transcript = Keccak256Transcript::new(Vec::new());
+                let proof_creation_result = create_proof::<_, ProverSHPLONK<_>, _, _, _, _>(
+                    &params,
+                    &pk,
+                    &[circuit],
+                    &[&[&instances_clone[0]]],
+                    &mut OsRng,
+                    &mut transcript,
+                );
+                assert!(proof_creation_result.is_ok());
+                transcript.finalize()
+            };
+
+            // write proof to file
+            let proof_path = format!("{}_{}", "./proofs/proof", user_index);
+            File::create(Path::new(&proof_path))
+                .expect("Failed to create proof file")
+                .write_all(&proof[..])
+                .expect("Failed to write proof");
+            println!("Proof written to: {}", proof_path);
+
+            // verify proof
+            let result = {
+                let mut transcript = Keccak256Transcript::new(proof.as_slice());
+                verify_proof::<_, VerifierSHPLONK<_>, _, _, SingleStrategy<_>>(
+                    &params,
+                    pk.get_vk(),
+                    SingleStrategy::new(&params),
+                    &[&[&instances_clone[0]]],
+                    &mut transcript,
+                )
+            };
+            assert!(result.is_ok());
+        }
     }
 }
