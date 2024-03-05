@@ -487,6 +487,7 @@ mod test {
             .unwrap();
             let instances_clone = circuit.instances().clone();
 
+            // generate proof
             let proof = {
                 let mut transcript = Keccak256Transcript::new(Vec::new());
                 let proof_creation_result = create_proof::<_, ProverSHPLONK<_>, _, _, _, _>(
@@ -509,6 +510,7 @@ mod test {
                 .expect("Failed to write proof");
             println!("Proof written to: {}", proof_path);
 
+            // verify proof
             let result = {
                 let mut transcript = Keccak256Transcript::new(proof.as_slice());
                 verify_proof::<_, VerifierSHPLONK<_>, _, _, SingleStrategy<_>>(
